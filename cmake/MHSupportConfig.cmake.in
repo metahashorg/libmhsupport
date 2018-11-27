@@ -1,0 +1,138 @@
+# libmhsupport config
+@PACKAGE_INIT@
+
+
+#set_and_check(FOO_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+#set_and_check(FOO_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+
+
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+if(NOT DEFINED CMAKE_C_STANDARD)
+    set(CMAKE_C_STANDARD 11)
+endif()
+
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+
+enable_language(CXX)
+include(CheckCXXCompilerFlag)
+
+enable_language(C)
+include(CheckCCompilerFlag)
+
+check_cxx_compiler_flag("-std=gnu++17" COMPILER_KNOWS_CXX17)
+if(COMPILER_KNOWS_CXX17)
+    message ("[+] Use C++17")
+    list(APPEND CMAKE_CXX_FLAGS "-std=gnu++17")
+else()
+    message("Compiler does not support -std=gnu++17")
+    check_cxx_compiler_flag("-std=c++17" COMPILER_KNOWS_CXX17)
+    if(COMPILER_KNOWS_CXX17)
+        message ("[+] Use C++17")
+        list(APPEND CMAKE_CXX_FLAGS "-std=c++17")
+    else()
+        message(FATAL_ERROR "Compiler does not support c++17")
+    endif()
+endif()
+
+
+check_c_compiler_flag("-std=gnu11" COMPILER_KNOWS_C11)
+if(COMPILER_KNOWS_C11)
+    message ("[+] Use C11")
+    list(APPEND CMAKE_C_FLAGS "-std=gnu11")
+else()
+    message("Compiler does not support -std=gnu11")
+
+    check_c_compiler_flag("-std=c11" COMPILER_KNOWS_C11)
+    if(COMPILER_KNOWS_C11)
+        message ("[+] Use C11")
+        list(APPEND CMAKE_C_FLAGS "-std=c11")
+    else()
+        message(FATAL_ERROR "Compiler does not support c11")
+    endif()
+endif()
+
+
+message ("[+] Use custom C/C++ Flags")
+
+set(COMMON_FLAGS "\
+    -march=corei7-avx \
+    -pipe \
+    -m64 \
+    -msse \
+    -msse2 \
+    -msse3 \
+    -mssse3 \
+    -msse4 \
+    -msse4.1 \
+    -msse4.2 \
+    -mavx \
+    -Wall \
+    -Wextra \
+    -Werror \
+    -Wpedantic \
+    -Wformat-security \
+    -fno-builtin-malloc \
+    -fno-builtin-calloc \
+    -fno-builtin-realloc \
+    -fno-builtin-free \
+    ")
+
+
+set(COMMON_FLAGS_DEBUG "\
+    -O0 \
+    -g \
+    -rdynamic \
+    ")
+
+set(COMMON_FLAGS_RELEASE "\
+    -DNDEBUG \
+    -s \
+    -rdynamic \
+    -g \
+    -Ofast \
+    -funroll-loops \
+    -fomit-frame-pointer \
+    -Wsuggest-final-types \
+    -Wno-misleading-indentation \
+    ")
+
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(COMMON_FLAGS "\
+        ${COMMON_FLAGS} \
+         -pthread \
+        ")
+
+    set(COMMON_FLAGS_DEBUG "\
+        ${COMMON_FLAGS_DEBUG} \
+        -fsanitize=address \
+        -fsanitize=undefined \
+        -fsanitize=leak \
+        -fstack-protector \
+        -fuse-ld=gold \
+        ")
+endif()
+
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAGS}")
+set(CMAKE_C_FLAGS_DEBUG "${COMMON_FLAGS_DEBUG}")
+set(CMAKE_C_FLAGS_RELEASE "${COMMON_FLAGS_RELEASE}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAGS} -Wno-class-memaccess -Wno-suggest-final-types")
+set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_FLAGS_RELEASE}")
+
+
+link_directories(/usr/local/lib)
+link_directories(${PACKAGE_PREFIX_DIR}/lib/mh)
+
+include_directories(SYSTEM /usr/local/include)
+include_directories(SYSTEM ${PACKAGE_PREFIX_DIR}/include)
