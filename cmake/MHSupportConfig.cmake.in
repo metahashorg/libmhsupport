@@ -63,17 +63,10 @@ endif()
 message ("[+] Use custom C/C++ Flags")
 
 set(COMMON_FLAGS "\
-    -march=corei7-avx \
+    -march=x86-64 \
+    -mtune=generic \
     -pipe \
     -m64 \
-    -msse \
-    -msse2 \
-    -msse3 \
-    -mssse3 \
-    -msse4 \
-    -msse4.1 \
-    -msse4.2 \
-    -mavx \
     -Wall \
     -Wextra \
     -Werror \
@@ -84,7 +77,6 @@ set(COMMON_FLAGS "\
     -fno-builtin-realloc \
     -fno-builtin-free \
     ")
-
 
 set(COMMON_FLAGS_DEBUG "\
     -O0 \
